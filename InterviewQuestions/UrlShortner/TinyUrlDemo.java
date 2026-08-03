@@ -1,33 +1,46 @@
 package InterviewQuestions.UrlShortner;
 
-import InterviewQuestions.UrlShortner.repository.UrlRepository;
 import InterviewQuestions.UrlShortner.service.UrlService;
-import InterviewQuestions.UrlShortner.service.UrlShortCodeGenerator;
+
+import java.time.Duration;
 
 public class TinyUrlDemo {
     public static void main(String[] args) {
-        UrlRepository urlRepository = new UrlRepository();
-        UrlShortCodeGenerator urlShortCodeGenerator = UrlShortCodeGenerator.getUrlShortCodeGenerator();
-        UrlService urlService = new UrlService(urlRepository, urlShortCodeGenerator);
+        UrlService urlService = new UrlService();
 
-        String shortCode = "";
-        String original = "helloworlds";
-        for (int i= 0; i< 10; i++){
-            try {
-                original += i;
-                shortCode = urlService.generateShortCode(original );
-                original = urlService.getOriginalUrl(shortCode);
+        // 1. BASE CASE
+        String longUrl = "https://hellow.com/?hi=hello";
+        String shortCodeUrl  = urlService.shortenUrl(longUrl);
+        System.out.println(shortCodeUrl + " : " + urlService.getOriginalUrl(shortCodeUrl));
 
-                System.out.println(shortCode + " : " + original);
-            } catch (Exception ex){
-                System.out.println("Eerror occurred while : "+ex.getMessage());
-            }
+        // 2. Custom Alias Case
+        String longUrl2 = "https://test2.com/?how=are";
+        String customAlias = "railway";
+        String customShortUrl = urlService.shortenUrl(longUrl2, customAlias);
+
+        System.out.println(customShortUrl + " : " + urlService.getOriginalUrl(customShortUrl));
+
+        // 3. Custom Alias Already exists
+        try {
+            String custom = urlService.shortenUrl(longUrl2, customAlias);
+        } catch (Exception ex) {
+            System.out.println("exception occurred: " + ex.getMessage());
         }
 
+        // 4. Count Case
+
+        urlService.getOriginalUrl(shortCodeUrl);
+        urlService.getOriginalUrl(shortCodeUrl);
+        System.out.println(shortCodeUrl + " : " + urlService.getClickCount(shortCodeUrl));
+
+
+        // 5. Expiration test
+        String shortcodeUrl = urlService.shortenUrl("https://ycoimbinator.com/?hello=world", Duration.ofMillis(100));
         try {
-            shortCode = urlService.getOriginalUrl("sdfsdfsdfsdf");
+            Thread.sleep(150);
+            System.out.println(urlService.getOriginalUrl(shortcodeUrl));
         } catch (Exception ex) {
-            System.out.println("Exception occurred: "+ex);
+            System.out.println("Exception occurred: " + ex.getMessage());
         }
     }
 }
