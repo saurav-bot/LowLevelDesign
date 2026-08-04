@@ -1,6 +1,7 @@
 package InterviewQuestions.UrlShortner.repository;
 
 import InterviewQuestions.UrlShortner.entities.UrlDetails;
+import InterviewQuestions.UrlShortner.exceptions.UrlShortnerException;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -20,7 +21,17 @@ public class InMemoryUrlRepository implements UrlRepository {
         return Optional.ofNullable(longUrlMap.get(longUrl));
     }
 
-    public synchronized UrlDetails saveIfAbsent(UrlDetails urlDetails){
+    public UrlDetails saveCustomAlias(UrlDetails urlDetails){
+        UrlDetails existing = shortCodeMap.putIfAbsent(urlDetails.getShortCode(), urlDetails);
+        if (existing != null){
+            return null;
+        }
+        longUrlMap.put(urlDetails.getOriginalUrl(), urlDetails);
+
+        return urlDetails;
+    }
+
+    public UrlDetails saveIfAbsent(UrlDetails urlDetails){
         UrlDetails existing = longUrlMap.putIfAbsent(urlDetails.getOriginalUrl(), urlDetails);
         if (existing != null){
             return existing;
@@ -28,7 +39,7 @@ public class InMemoryUrlRepository implements UrlRepository {
 
         UrlDetails shortExisting = shortCodeMap.putIfAbsent(urlDetails.getShortCode(), urlDetails);
         if (shortExisting != null){
-            longUrlMap.remove(urlDetails.getOriginalUrl());
+            longUrlMap.remove(urlDetails.getOriginalUrl(), urlDetails);
             return null;
         }
 
@@ -39,12 +50,13 @@ public class InMemoryUrlRepository implements UrlRepository {
         return shortCodeMap.get(shortCode) != null;
     }
 
-    public synchronized void deleteByShortCode(String shortCode) {
-        UrlDetails urlDetails = shortCodeMap.get(shortCode);
-        if (urlDetails == null){
-            throw new RuntimeException("Short code does not exists: ");
+    public void deleteByShortCode(String shortCode) {
+        UrlDetails removed = shortCodeMap.remove(shortCode);
+        if (removed == null){
+            throw new UrlShortnerException.UrlInvalidException("Short code does not exists: ");
         }
-        shortCodeMap.remove(shortCode);
-        longUrlMap.remove(urlDetails.getOriginalUrl());
+
+        // Used key, value to remove since multiple shortcode can be used to remove same longUrl
+        longUrlMap.remove(removed.getOriginalUrl(), removed);
     }
 }

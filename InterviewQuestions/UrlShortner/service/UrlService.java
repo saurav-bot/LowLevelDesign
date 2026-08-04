@@ -47,14 +47,7 @@ public class UrlService {
         Instant expiredAt = (ttl != null) ? Instant.now().plus(ttl) : null;
 
         if (customAlias != null && !customAlias.isBlank()) {
-            String sanitizedAlias = customAlias.trim();
-            if (urlRepository.existsByShortCode(sanitizedAlias)) {
-                throw new UrlShortnerException.AliasAlreadyExistException(sanitizedAlias);
-            }
-            UrlDetails urlDetails = new UrlDetails(sanitizedAlias, longUrl, expiredAt);
-            urlRepository.saveIfAbsent(urlDetails);
-
-            return baseUrl + sanitizedAlias;
+            return handleCustomAlias(customAlias, longUrl, expiredAt);
         }
 
         Optional<UrlDetails> existing = urlRepository.findByLongUrl(longUrl);
@@ -75,8 +68,7 @@ public class UrlService {
             }
         }
 
-        throw new RuntimeException(("Failed to generate unique short code after retries. Please retry."));
-
+        throw new UrlShortnerException("Failed to generate unique short code after retries. Please retry.");
     }
 
     public String getOriginalUrl(String shortCodeUrl){
@@ -93,6 +85,19 @@ public class UrlService {
         details.incrementClickCount();
 
         return details.getOriginalUrl();
+    }
+
+    private String handleCustomAlias(String customAlias, String longUrl, Instant expiresAt) {
+        String sanitizedAlias = customAlias.trim();
+
+        UrlDetails urlDetails = new UrlDetails(sanitizedAlias, longUrl, expiresAt);
+        UrlDetails saved = urlRepository.saveCustomAlias(urlDetails);
+
+        if (saved == null) {
+            throw new UrlShortnerException.AliasAlreadyExistException(sanitizedAlias);
+        }
+
+        return baseUrl + sanitizedAlias;
     }
 
     private String extractShortCode(String shortCodeUrl) {

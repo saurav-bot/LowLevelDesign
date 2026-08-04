@@ -10,7 +10,7 @@ public class Base62 {
         }
         StringBuilder sb = new StringBuilder();
         while (input > 0) {
-            sb.append(ALPHABETS.charAt((int) input % BASE));
+            sb.append(ALPHABETS.charAt((int) (input % BASE)));
             input /= BASE;
         }
 

@@ -5,11 +5,11 @@ import java.util.concurrent.atomic.AtomicLong;
 
 
 public class UrlDetails{
-    private String shortCode;
-    private String originalUrl;
-    private Instant createdAt;
-    private Instant expiredAt;
-    private AtomicLong clickedCount;
+    private final String shortCode;
+    private final String originalUrl;
+    private final Instant createdAt;
+    private final Instant expiredAt;
+    private final AtomicLong clickedCount;
 
     public UrlDetails(String shortCode, String originalUrl, Instant expiredAt){
         this.createdAt = Instant.now();

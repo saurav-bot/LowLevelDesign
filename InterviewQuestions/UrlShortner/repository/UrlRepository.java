@@ -9,6 +9,7 @@ public interface UrlRepository {
     Optional<UrlDetails> findByShortCode(String shortCode);
     Optional<UrlDetails> findByLongUrl(String longUrl);
     UrlDetails saveIfAbsent(UrlDetails urlDetails);
+    UrlDetails saveCustomAlias(UrlDetails urlDetails);
     boolean existsByShortCode(String shortCode);
     void deleteByShortCode(String shortCode);
 }
