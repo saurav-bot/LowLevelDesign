@@ -2,6 +2,7 @@ package InterviewQuestions.LRU.service;
 
 import InterviewQuestions.LRU.repositories.CacheRepository;
 import InterviewQuestions.LRU.repositories.InMemoryLRUCacheRepository;
+import InterviewQuestions.LRU.repositories.SegmentCache;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -36,8 +37,12 @@ public class CacheService<K, V> implements AutoCloseable{
         this(new InMemoryLRUCacheRepository<K, V>(capacity),  Duration.ofMillis(100));
     }
 
+//    public CacheService(){
+//        this(new InMemoryLRUCacheRepository<K, V>(100),  Duration.ofMillis(100));
+//    }
+
     public CacheService(){
-        this(new InMemoryLRUCacheRepository<K, V>(100),  Duration.ofMillis(100));
+        this(new SegmentCache<>(100), Duration.ofMillis(100));
     }
 
     public V getValue(K key) {
