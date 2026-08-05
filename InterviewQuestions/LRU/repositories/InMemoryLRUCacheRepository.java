@@ -3,6 +3,7 @@ package InterviewQuestions.LRU.repositories;
 import InterviewQuestions.LRU.entities.CacheEntry;
 import InterviewQuestions.LRU.entities.DoublyLinkedList;
 
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -24,6 +25,12 @@ public class InMemoryLRUCacheRepository<K, V> implements CacheRepository<K, V> {
         if (node == null){
             return null;
         }
+
+        if (node.isExpired()) {
+            removeKey(node.getKey());
+            return null;
+        }
+
         dll.moveToLast(node);
         return node.getVal();
     }
@@ -37,10 +44,16 @@ public class InMemoryLRUCacheRepository<K, V> implements CacheRepository<K, V> {
     }
 
     @Override
-    public void putKey(K key, V val) {
+    public void putKey(K key, V val){
+        putKey(key, val, null);
+    }
+
+    @Override
+    public void putKey(K key, V val, Instant expiresAt) {
         CacheEntry<K, V> existing = map.get(key);
         if (existing != null){
             existing.setVal(val);
+            existing.setExpiresAt(expiresAt);
             dll.moveToLast(existing);
             return;
 
@@ -51,7 +64,7 @@ public class InMemoryLRUCacheRepository<K, V> implements CacheRepository<K, V> {
                 map.remove(node.getKey());
             }
         }
-        CacheEntry<K, V> newNode = new CacheEntry<>(key, val);
+        CacheEntry<K, V> newNode = new CacheEntry<>(key, val, expiresAt);
         map.put(key, newNode);
         dll.addLast(newNode);
     }

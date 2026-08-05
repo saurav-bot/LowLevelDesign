@@ -2,6 +2,8 @@ package InterviewQuestions.LRU;
 
 import InterviewQuestions.LRU.service.LRUCache;
 
+import java.time.Duration;
+
 public class LRUCacheDemo {
     public static void main(String[] args) {
         LRUCache<String, String> cache = new LRUCache<>();
@@ -19,6 +21,16 @@ public class LRUCacheDemo {
 
         System.out.println(cache.getValue("how"));
         System.out.println(cache.getValue("are"));
+
+
+        cache.putVal("time", "test", Duration.ofMillis(100));
+        System.out.println("Before key expires " + cache.getValue("time"));
+        try {
+            Thread.sleep(200);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        System.out.println("After key expires " + cache.getValue("time"));
 //        System.out.println();
 //        System.out.println();
     }

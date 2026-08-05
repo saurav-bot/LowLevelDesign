@@ -3,6 +3,8 @@ package InterviewQuestions.LRU.service;
 import InterviewQuestions.LRU.repositories.CacheRepository;
 import InterviewQuestions.LRU.repositories.InMemoryLRUCacheRepository;
 
+import java.time.Duration;
+import java.time.Instant;
 
 public class LRUCache<K, V> {
     private final CacheRepository<K, V> cacheRepository;
@@ -21,6 +23,11 @@ public class LRUCache<K, V> {
 
     public V getValue(K key) {
         return cacheRepository.getVal(key);
+    }
+
+    public void putVal(K key, V val, Duration ttl){
+        Instant expiresAt = ttl != null ? Instant.now().plus(ttl) : null;
+        cacheRepository.putKey(key, val, expiresAt);
     }
 
     public void putVal(K key, V val) {
