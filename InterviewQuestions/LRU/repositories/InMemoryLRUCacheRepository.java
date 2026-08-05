@@ -4,7 +4,9 @@ import InterviewQuestions.LRU.entities.CacheEntry;
 import InterviewQuestions.LRU.entities.DoublyLinkedList;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class InMemoryLRUCacheRepository<K, V> implements CacheRepository<K, V> {
@@ -68,5 +70,21 @@ public class InMemoryLRUCacheRepository<K, V> implements CacheRepository<K, V> {
         map.put(key, newNode);
         dll.addLast(newNode);
     }
+
+    public void cleanupExpiredEntries() {
+        List<K> expiredKeys = new ArrayList<>();
+
+        for (CacheEntry<K, V> entries : map.values()) {
+            if (entries.isExpired()){
+                expiredKeys.add(entries.getKey());
+            }
+        }
+
+        for(K key : expiredKeys){
+            System.out.println("Key " + key + " is expired and removed");
+            removeKey(key);
+        }
+    }
+
 
 }

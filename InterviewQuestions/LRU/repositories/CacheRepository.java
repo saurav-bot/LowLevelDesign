@@ -7,4 +7,5 @@ public interface CacheRepository<K, V> {
     void removeKey(K key);
     void putKey(K key, V val);
     void putKey(K key, V val, Instant expiresAt);
+    void cleanupExpiredEntries();
 }
