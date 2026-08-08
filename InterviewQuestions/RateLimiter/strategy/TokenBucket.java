@@ -1,4 +1,4 @@
-package InterviewQuestions.RateLimiter;
+package InterviewQuestions.RateLimiter.strategy;
 
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -9,14 +9,6 @@ public class TokenBucket {
     private double currentTokens;
     private long lastRefillTimestampNano;
     private final ReentrantLock lock;
-
-    public TokenBucket(String key, long capacity, double refillRatePerSec, ReentrantLock lock) {
-        this.key = key;
-        this.capacity = capacity;
-        this.refillRatePerSec = refillRatePerSec;
-        this.lock = lock;
-        this.lastRefillTimestampNano = System.nanoTime();
-    }
 
     public TokenBucket(String key, long capacity, double refillRatePerSec) {
         this.capacity = capacity;

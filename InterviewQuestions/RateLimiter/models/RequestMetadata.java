@@ -1,4 +1,4 @@
-package InterviewQuestions.RateLimiter;
+package InterviewQuestions.RateLimiter.models;
 
 public class RequestMetadata {
     private String userId;

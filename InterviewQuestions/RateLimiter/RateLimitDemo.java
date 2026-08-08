@@ -1,13 +1,19 @@
 package InterviewQuestions.RateLimiter;
 
-import java.util.concurrent.Executor;
+import InterviewQuestions.RateLimiter.models.RateLimitResult;
+import InterviewQuestions.RateLimiter.models.RateLimitRule;
+import InterviewQuestions.RateLimiter.models.RequestMetadata;
+import InterviewQuestions.RateLimiter.models.RuleType;
+import InterviewQuestions.RateLimiter.service.RateLimiterService;
+import InterviewQuestions.RateLimiter.strategy.SlidingWindowCounter;
+
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
 
 public class RateLimitDemo {
     public static void main(String[] args) {
-        RateLimiterService rateLimiterService = new RateLimiterService();
+        SlidingWindowCounter slidingWindowCounter = new SlidingWindowCounter(10, 40000);
+        RateLimiterService rateLimiterService = new RateLimiterService(slidingWindowCounter);
         RateLimitRule global = new RateLimitRule("1", RuleType.GLOBAL, null, 10, 2);
         RateLimitRule user = new RateLimitRule("2", RuleType.USER, null, 10, 5);
         RateLimitRule resource = new RateLimitRule("3", RuleType.RESOURCE, "test", 10, 3);
@@ -38,7 +44,7 @@ public class RateLimitDemo {
 
 
     private static void helper(RateLimiterService rateLimiterService) {
-        for (int i = 0; i < 10; i ++){
+        for (int i = 0; i < 50; i ++){
             RequestMetadata metadata = new RequestMetadata("1", "1", "test", 1);
             RateLimitResult result = rateLimiterService.isValid(metadata);
             System.out.println(Thread.currentThread().getName() + " Result " + i + " " + result.isAllowed() + " entity failure: " + result.getRetryAfterSeconds() + " ent: " + result.getViolatedRuleId());

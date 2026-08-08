@@ -1,4 +1,4 @@
-package InterviewQuestions.RateLimiter;
+package InterviewQuestions.RateLimiter.models;
 
 public class RateLimitResult {
     private boolean allowed=true;
