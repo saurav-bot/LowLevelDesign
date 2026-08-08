@@ -32,7 +32,7 @@ public class SlidingWindowCounter implements RateLimitStrategy{
                 long now = System.currentTimeMillis();
                 long currWindow = now / windowMillis;
 
-                long windowDiff = currentWindow - currWindow;
+                long windowDiff = currWindow - currentWindow;
 
                 if (windowDiff == 1) {
                     previousCount = currentCount;
@@ -91,7 +91,10 @@ public class SlidingWindowCounter implements RateLimitStrategy{
                     consumedWindow.rollback(request.getTokenRequested());
                 }
 
-                return new RateLimitResult(false, 0, window.key);
+                long remainingMillis = windowMillis - (System.currentTimeMillis() % windowMillis);
+                long retryAfter = Math.max(1, (long) Math.ceil(remainingMillis / 1000.0));
+                return new RateLimitResult(false, retryAfter, window.key);
+//                return new RateLimitResult(false, 0, window.key);
             }
 
         }

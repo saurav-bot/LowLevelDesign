@@ -15,17 +15,17 @@ public class TokenBucketStrategy implements RateLimitStrategy{
 
     public RateLimitResult isValid(RequestMetadata requestMetadata, List<RateLimitRule> ruleList) {
         List<MatchedRule<TokenBucket>> bucketList = getMatchedBuckets(requestMetadata, ruleList);
-        List<TokenBucket> consumedBucket = new ArrayList<>();
+        List<MatchedRule<TokenBucket>> consumedBucket = new ArrayList<>();
 
         for (MatchedRule<TokenBucket> matchedRule: bucketList){
             TokenBucket bucket = matchedRule.getLimiter();
             RateLimitRule rule = matchedRule.getRule();
 
             if (bucket.tryConsume(requestMetadata.getTokenRequested(), rule.getRefillRatePerSec(), rule.getCapacity())){
-                consumedBucket.add(bucket);
+                consumedBucket.add(matchedRule);
             } else {
-                for (TokenBucket bucket1: consumedBucket) {
-                    bucket1.rollback(requestMetadata.getTokenRequested(), rule.getCapacity());
+                for (MatchedRule<TokenBucket> matchedRule1: consumedBucket) {
+                    matchedRule1.getLimiter().rollback(requestMetadata.getTokenRequested(), matchedRule1.getRule().getCapacity());
                 }
                 return new RateLimitResult(false, bucket.getRetryAfterSeconds(requestMetadata.getTokenRequested(), rule.getRefillRatePerSec()), bucket.getKey());
             }
