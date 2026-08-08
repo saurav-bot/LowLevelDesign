@@ -1,5 +1,6 @@
 package InterviewQuestions.RateLimiter.strategy;
 
+import InterviewQuestions.RateLimiter.models.MatchedRule;
 import InterviewQuestions.RateLimiter.models.RateLimitResult;
 import InterviewQuestions.RateLimiter.models.RateLimitRule;
 import InterviewQuestions.RateLimiter.models.RequestMetadata;
@@ -13,35 +14,38 @@ public class TokenBucketStrategy implements RateLimitStrategy{
     Map<String, TokenBucket> bucketMap = new ConcurrentHashMap<>();
 
     public RateLimitResult isValid(RequestMetadata requestMetadata, List<RateLimitRule> ruleList) {
-        List<TokenBucket> bucketList = getMatchedBuckets(requestMetadata, ruleList);
+        List<MatchedRule<TokenBucket>> bucketList = getMatchedBuckets(requestMetadata, ruleList);
         List<TokenBucket> consumedBucket = new ArrayList<>();
 
-        for (TokenBucket bucket: bucketList){
-            if (bucket.tryConsume(requestMetadata.getTokenRequested())){
+        for (MatchedRule<TokenBucket> matchedRule: bucketList){
+            TokenBucket bucket = matchedRule.getLimiter();
+            RateLimitRule rule = matchedRule.getRule();
+
+            if (bucket.tryConsume(requestMetadata.getTokenRequested(), rule.getRefillRatePerSec(), rule.getCapacity())){
                 consumedBucket.add(bucket);
             } else {
                 for (TokenBucket bucket1: consumedBucket) {
-                    bucket1.rollback(requestMetadata.getTokenRequested());
+                    bucket1.rollback(requestMetadata.getTokenRequested(), rule.getCapacity());
                 }
-                return new RateLimitResult(false, bucket.getRetryAfterSeconds(requestMetadata.getTokenRequested()), bucket.getKey());
+                return new RateLimitResult(false, bucket.getRetryAfterSeconds(requestMetadata.getTokenRequested(), rule.getRefillRatePerSec()), bucket.getKey());
             }
         }
 
         return new RateLimitResult();
     }
 
-    private List<TokenBucket> getMatchedBuckets(RequestMetadata request, List<RateLimitRule> rules) {
-        List<TokenBucket> buckets = new ArrayList<>();
+    private List<MatchedRule<TokenBucket>> getMatchedBuckets(RequestMetadata request, List<RateLimitRule> rules) {
+        List<MatchedRule<TokenBucket>> matchedBuckets = new ArrayList<>();
 
         for(RateLimitRule rule : rules){
             String key = getKey(request, rule);
             if (key != null){
-                TokenBucket bucket = bucketMap.computeIfAbsent(key, k -> new TokenBucket(k, rule.getCapacity(), rule.getRefillRatePerSec()));
-                buckets.add(bucket);
+                TokenBucket bucket = bucketMap.computeIfAbsent(key, k -> new TokenBucket(k, rule.getCapacity()));
+                matchedBuckets.add(new MatchedRule<>(bucket, rule));
             }
         }
 
-        return buckets;
+        return matchedBuckets;
     }
 
     private String getKey(RequestMetadata requestMetadata, RateLimitRule rule) {

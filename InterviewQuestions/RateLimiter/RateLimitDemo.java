@@ -12,7 +12,7 @@ import java.util.concurrent.Executors;
 
 public class RateLimitDemo {
     public static void main(String[] args) {
-        SlidingWindowCounter slidingWindowCounter = new SlidingWindowCounter(10, 40000);
+        SlidingWindowCounter slidingWindowCounter = new SlidingWindowCounter( 40000);
         RateLimiterService rateLimiterService = new RateLimiterService(slidingWindowCounter);
         RateLimitRule global = new RateLimitRule("1", RuleType.GLOBAL, null, 10, 2);
         RateLimitRule user = new RateLimitRule("2", RuleType.USER, null, 10, 5);

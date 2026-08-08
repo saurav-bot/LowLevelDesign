@@ -4,15 +4,15 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class TokenBucket {
     private final String key;
-    private final long capacity;
-    private final double refillRatePerSec;
+//    private final long capacity;
+//    private final double refillRatePerSec;
     private double currentTokens;
     private long lastRefillTimestampNano;
     private final ReentrantLock lock;
 
-    public TokenBucket(String key, long capacity, double refillRatePerSec) {
-        this.capacity = capacity;
-        this.refillRatePerSec = refillRatePerSec;
+    public TokenBucket(String key, long capacity) {
+//        this.capacity = capacity;
+//        this.refillRatePerSec = refillRatePerSec;
         this.key = key;
         this.lock = new ReentrantLock();
         this.currentTokens = capacity;
@@ -20,7 +20,7 @@ public class TokenBucket {
     }
 
 
-    public boolean tryConsume(int tokensNeeded) {
+    public boolean tryConsume(int tokensNeeded, double refillRatePerSec, long capacity) {
         lock.lock();
         try {
             long now = System.nanoTime();
@@ -42,7 +42,7 @@ public class TokenBucket {
         return false;
     }
 
-    public void rollback(int tokensConsumed) {
+    public void rollback(int tokensConsumed, long capacity) {
         lock.lock();
         try {
             currentTokens = Math.min(capacity, currentTokens + tokensConsumed);
@@ -51,7 +51,7 @@ public class TokenBucket {
         }
     }
 
-    public long getRetryAfterSeconds(int tokenRequested){
+    public long getRetryAfterSeconds(int tokenRequested, double refillRatePerSec){
         lock.lock();
         try {
             if (currentTokens >= tokenRequested) {
@@ -59,7 +59,7 @@ public class TokenBucket {
             }
 
             double missingTokens = tokenRequested-currentTokens;
-            double secondsRequired = missingTokens/refillRatePerSec;
+            double secondsRequired = missingTokens/ refillRatePerSec;
 
             return Math.max(1, (long) Math.ceil(secondsRequired));
         } finally {

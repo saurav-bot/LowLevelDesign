@@ -1,9 +1,6 @@
 package InterviewQuestions.RateLimiter.strategy;
 
-import InterviewQuestions.RateLimiter.models.RateLimitResult;
-import InterviewQuestions.RateLimiter.models.RateLimitRule;
-import InterviewQuestions.RateLimiter.models.RequestMetadata;
-import InterviewQuestions.RateLimiter.models.RuleType;
+import InterviewQuestions.RateLimiter.models.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -70,58 +67,47 @@ public class SlidingWindowCounter implements RateLimitStrategy{
         }
     }
 
-    static class MatchedPair {
-        private Window window;
-        private RateLimitRule rateLimitRule;
 
-        MatchedPair(Window window, RateLimitRule rateLimitRule) {
-            this.window = window;
-            this.rateLimitRule = rateLimitRule;
-        }
-
-    }
-
-
-    private final int limit;
     private final long windowMillis;
 
     private final ConcurrentHashMap<String, Window> map = new ConcurrentHashMap<>();
 
-    public SlidingWindowCounter(int limit, long windowMillis){
-        this.limit = limit;
+    public SlidingWindowCounter(long windowMillis){
         this.windowMillis = windowMillis;
     }
 
 
     public RateLimitResult isValid(RequestMetadata request, List<RateLimitRule> rateLimitRuleList) {
-        List<MatchedPair> matchedPairs = getMatchingWindows(request, rateLimitRuleList);
+        List<MatchedRule<Window>> matchedPairs = getMatchingWindows(request, rateLimitRuleList);
         List<Window> consumedWindows = new ArrayList<>();
 
-        for(MatchedPair matchedPair : matchedPairs) {
-            if (matchedPair.window.tryConsume(request.getTokenRequested(), windowMillis, matchedPair.rateLimitRule.getCapacity())) {
-                consumedWindows.add(matchedPair.window);
+        for(MatchedRule<Window> matchedPair : matchedPairs) {
+            Window window = matchedPair.getLimiter();
+            RateLimitRule rule = matchedPair.getRule();
+            if (window.tryConsume(request.getTokenRequested(), windowMillis, rule.getCapacity())) {
+                consumedWindows.add(window);
             } else {
                 for (Window consumedWindow : consumedWindows) {
                     consumedWindow.rollback(request.getTokenRequested());
                 }
 
-                return new RateLimitResult(false, 0, matchedPair.window.key);
+                return new RateLimitResult(false, 0, window.key);
             }
+
         }
 
         return new RateLimitResult();
-//        return new RateLimitResult(false, 0, "0");
     }
 
-    private List<MatchedPair> getMatchingWindows(RequestMetadata request, List<RateLimitRule> rateLimitRules) {
-        List<MatchedPair> matchedPairs = new ArrayList<>();
+    private List<MatchedRule<Window>> getMatchingWindows(RequestMetadata request, List<RateLimitRule> rateLimitRules) {
+        List<MatchedRule<Window>> matchedPairs = new ArrayList<>();
 
         for(RateLimitRule rule : rateLimitRules) {
             String key = generateKey(request, rule);
 
             if (key != null){
                 Window  window = map.computeIfAbsent(key, k -> new Window(key));
-                matchedPairs.add(new MatchedPair(window, rule));
+                matchedPairs.add(new MatchedRule<>(window, rule));
             }
         }
 
