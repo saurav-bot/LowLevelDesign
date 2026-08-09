@@ -39,6 +39,10 @@ public class RateLimitRule {
         return refillRatePerSec;
     }
 
+    public double getLeakRatePerSec() {
+        return leakRatePerSec;
+    }
+
     public void setRefillRatePerSec(double refillRatePerSec) {
         this.refillRatePerSec = refillRatePerSec;
     }
@@ -47,12 +51,14 @@ public class RateLimitRule {
     private String targetPattern;
     private long capacity;
     private double refillRatePerSec;
+    private double leakRatePerSec;
 
-    public RateLimitRule(String ruleId, RuleType ruleType, String targetPattern, long capacity, double refillRatePerSec) {
+    public RateLimitRule(String ruleId, RuleType ruleType, String targetPattern, long capacity, double refillRatePerSec, double leakRatePerSec) {
         this.ruleId = ruleId;
         this.ruleType = ruleType;
         this.targetPattern = targetPattern;
         this.capacity = capacity;
         this.refillRatePerSec = refillRatePerSec;
+        this.leakRatePerSec = leakRatePerSec;
     }
 }
