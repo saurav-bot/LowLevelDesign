@@ -5,7 +5,9 @@ import InterviewQuestions.RateLimiter.models.RateLimitRule;
 import InterviewQuestions.RateLimiter.models.RequestMetadata;
 import InterviewQuestions.RateLimiter.models.RuleType;
 import InterviewQuestions.RateLimiter.service.RateLimiterService;
+import InterviewQuestions.RateLimiter.strategy.RateLimitStrategy;
 import InterviewQuestions.RateLimiter.strategy.SlidingWindowCounter;
+import InterviewQuestions.RateLimiter.strategy.SlidingWindowLogStrategy;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -13,16 +15,9 @@ import java.util.concurrent.Executors;
 public class RateLimitDemo {
     public static void main(String[] args) {
         SlidingWindowCounter slidingWindowCounter = new SlidingWindowCounter( 40000);
-        RateLimiterService rateLimiterService = new RateLimiterService(slidingWindowCounter);
-        RateLimitRule global = new RateLimitRule("1", RuleType.GLOBAL, null, 10, 2);
-        RateLimitRule user = new RateLimitRule("2", RuleType.USER, null, 10, 5);
-        RateLimitRule resource = new RateLimitRule("3", RuleType.RESOURCE, "test", 10, 3);
-        RateLimitRule ip = new RateLimitRule("4", RuleType.IP, null, 6, 4);
+        SlidingWindowLogStrategy slidingWindowLogStrategy = new SlidingWindowLogStrategy(10000);
 
-        rateLimiterService.addRateLimitRules(global);
-        rateLimiterService.addRateLimitRules(user);
-        rateLimiterService.addRateLimitRules(resource);
-        rateLimiterService.addRateLimitRules(ip);
+        RateLimiterService rateLimiterService = getRateLimiterService( slidingWindowLogStrategy);
 
         ExecutorService executor = Executors.newFixedThreadPool(10);
         for(int i = 0; i < 1; i ++){
@@ -42,12 +37,26 @@ public class RateLimitDemo {
 //        rateLimiterService.
     }
 
+    private static RateLimiterService getRateLimiterService(RateLimitStrategy slidingWindowLogStrategy) {
+        RateLimiterService rateLimiterService = new RateLimiterService(slidingWindowLogStrategy);
+        RateLimitRule global = new RateLimitRule("1", RuleType.GLOBAL, null, 10, 2);
+        RateLimitRule user = new RateLimitRule("2", RuleType.USER, null, 10, 5);
+        RateLimitRule resource = new RateLimitRule("3", RuleType.RESOURCE, "test", 10, 3);
+        RateLimitRule ip = new RateLimitRule("4", RuleType.IP, null, 6, 4);
+
+        rateLimiterService.addRateLimitRules(global);
+        rateLimiterService.addRateLimitRules(user);
+        rateLimiterService.addRateLimitRules(resource);
+        rateLimiterService.addRateLimitRules(ip);
+        return rateLimiterService;
+    }
+
 
     private static void helper(RateLimiterService rateLimiterService) {
         for (int i = 0; i < 50; i ++){
             RequestMetadata metadata = new RequestMetadata("1", "1", "test", 1);
             RateLimitResult result = rateLimiterService.isValid(metadata);
-            System.out.println(Thread.currentThread().getName() + " Result " + i + " " + result.isAllowed() + " entity failure: " + result.getRetryAfterSeconds() + " ent: " + result.getViolatedRuleId());
+            System.out.println(System.currentTimeMillis() + " " + Thread.currentThread().getName() + " Result " + i + " " + result.isAllowed() + " entity failure: " + result.getRetryAfterSeconds() + " ent: " + result.getViolatedRuleId());
             if (!result.isAllowed()) {
                 try {
                     Thread.sleep(result.getRetryAfterSeconds()*1000);
