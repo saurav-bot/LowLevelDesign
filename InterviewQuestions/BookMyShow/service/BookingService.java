@@ -11,45 +11,59 @@ import java.util.concurrent.ConcurrentHashMap;
 public class BookingService {
     private final ConcurrentHashMap<String, Booking> bookingMap = new ConcurrentHashMap<>();
 
-    public final TheatreService theatreService;
+    private final ShowService showService;
 
-    public BookingService(TheatreService theatreService) {
-        this.theatreService = theatreService;
+
+    public BookingService(ShowService showService) {
+        this.showService = showService;
     }
 
     public List<ShowSeat> getAvailableSeatForShow(String showId) {
-        List<ShowSeat> seats = theatreService.getAvailableSeat(showId);
+        List<ShowSeat> seats = showService.getAllSeatOfShow(showId);
         seats = seats.stream().filter(s -> s.getSeatStatus().equals(SeatStatus.AVAILABLE)).toList();
 
         return seats;
     }
 
-    public Booking book(Theatre theatre, Screen screen, Show show, List<ShowSeat> showSeats){
-        Booking booking = new Booking(theatre, screen, show, showSeats);
-        bookingMap.put(booking.getBookingId(), booking);
+    public void initiateBooking(Booking booking, List<ShowSeat> showSeats) {
         List<ShowSeat> bookedSeats = new ArrayList<>();
 
         for (ShowSeat showSeat : showSeats) {
-            if (showSeat.updateSeatStatus(SeatStatus.LOCKED, SeatStatus.AVAILABLE))
+            if (showSeat.lockSeat())
             {
                 bookedSeats.add(showSeat);
             } else {
-                for (ShowSeat showSeat1: bookedSeats) {
-                    showSeat1.updateSeatStatus(SeatStatus.AVAILABLE, SeatStatus.LOCKED);
+                for (ShowSeat bookedSeat: bookedSeats) {
+                    bookedSeat.releaseSeat();
                 }
                 booking.updateBookingStatus(BookingStatus.FAILED);
-                return booking;
-//                throw new RuntimeException("Could not complete booking, As seat " + showSeat.getSeat().getSeatNumber() + " is already booked");
+                return ;
             }
         }
 
-        for (ShowSeat showSeat : showSeats) {
-            if (showSeat.getSeatStatus().equals(SeatStatus.LOCKED)) {
-                showSeat.updateSeatStatus(SeatStatus.BOOKED, SeatStatus.LOCKED);
-                bookedSeats.add(showSeat);
-            }
+//        return booking;
+    }
+
+    public void confirmBooking(Booking booking) {
+        for (ShowSeat showSeat : booking.getShowSeatList()) {
+            showSeat.confirmSeat();
+        }
+    }
+
+
+    public Booking book(Show show, List<ShowSeat> showSeats, User user){
+        Booking booking = new Booking(show.getTheatre(), show.getShowScreen(), show, showSeats, user);
+        bookingMap.put(booking.getBookingId(), booking);
+
+        initiateBooking(booking, showSeats);
+
+        if (booking.getBookingStatus().equals(BookingStatus.FAILED)) {
+            return booking;
         }
 
+        // Simulate payment and if payment is confirmed then make seat confirmed for booking
+
+        confirmBooking(booking);
         booking.updateBookingStatus(BookingStatus.CONFIRMED);
         return booking;
 

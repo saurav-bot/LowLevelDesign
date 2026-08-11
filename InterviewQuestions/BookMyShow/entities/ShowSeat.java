@@ -2,21 +2,20 @@ package InterviewQuestions.BookMyShow.entities;
 
 import InterviewQuestions.BookMyShow.enums.SeatStatus;
 
-import java.util.concurrent.locks.ReentrantLock;
+import java.math.BigDecimal;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class ShowSeat {
     private final Show show;
     private final Seat seat;
-    private SeatStatus seatStatus;
-    private double price;
-    private ReentrantLock lock;
+    private final AtomicReference<SeatStatus> seatStatus;
+    private BigDecimal price;
 
-    public ShowSeat(Show show, Seat seat, double price) {
+    public ShowSeat(Show show, Seat seat, BigDecimal price) {
         this.show = show;
         this.seat = seat;
         this.price = price;
-        this.seatStatus = SeatStatus.AVAILABLE;
-        this.lock = new ReentrantLock();
+        this.seatStatus = new AtomicReference<>(SeatStatus.AVAILABLE);
     }
 
     public Show getShow() {
@@ -28,28 +27,34 @@ public class ShowSeat {
     }
 
     public SeatStatus getSeatStatus() {
-        return seatStatus;
+        return seatStatus.get();
     }
 
     public boolean updateSeatStatus(SeatStatus newSeatStatus, SeatStatus previousStatus) {
-        lock.lock();
-        try {
-            if (previousStatus != seatStatus) {
-                return false;
-            }
-            this.seatStatus = newSeatStatus;
-
-            return true;
-        } finally {
-            lock.unlock();
-        }
+        return seatStatus.compareAndSet(previousStatus, newSeatStatus);
     }
 
-    public double getPrice() {
+    public boolean lockSeat() {
+        return seatStatus.compareAndSet(SeatStatus.AVAILABLE, SeatStatus.LOCKED);
+    }
+
+    public boolean confirmSeat() {
+        return seatStatus.compareAndSet(SeatStatus.LOCKED, SeatStatus.BOOKED);
+    }
+
+    public boolean releaseSeat() {
+        return seatStatus.compareAndSet(SeatStatus.LOCKED, SeatStatus.AVAILABLE);
+    }
+
+    public boolean cancelSeat() {
+        return seatStatus.compareAndSet(SeatStatus.BOOKED, SeatStatus.AVAILABLE);
+    }
+
+    public BigDecimal getPrice() {
         return this.price;
     }
 
-    public void updatePrice(double price) {
+    public void updatePrice(BigDecimal price) {
         this.price = price;
     }
 }

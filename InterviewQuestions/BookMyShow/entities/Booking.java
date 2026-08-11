@@ -6,20 +6,22 @@ import java.util.List;
 import java.util.UUID;
 
 public class Booking {
-    private Theatre theatre;
-    private String bookingId;
-    private Screen screen;
-    private Show show;
-    private List<ShowSeat> showSeatList;
+    private final User user;
+    private final Theatre theatre;
+    private final String bookingId;
+    private final Screen screen;
+    private final Show show;
+    private final List<ShowSeat> showSeatList;
     private BookingStatus bookingStatus;
 
-    public Booking(Theatre theatre, Screen screen, Show show, List<ShowSeat> showSeats) {
+    public Booking(Theatre theatre, Screen screen, Show show, List<ShowSeat> showSeats, User user) {
         this.bookingId = UUID.randomUUID().toString();
         this.theatre = theatre;
         this.screen = screen;
         this.show = show;
         this.showSeatList = showSeats;
         this.bookingStatus = BookingStatus.INITIATED;
+        this.user = user;
     }
 
     public BookingStatus getBookingStatus() {
@@ -32,5 +34,9 @@ public class Booking {
 
     public String getBookingId() {
         return this.bookingId;
+    }
+
+    public List<ShowSeat> getShowSeatList() {
+        return this.showSeatList;
     }
 }

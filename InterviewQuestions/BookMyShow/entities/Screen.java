@@ -1,5 +1,6 @@
 package InterviewQuestions.BookMyShow.entities;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -17,7 +18,11 @@ public class Screen {
     }
 
     public List<Seat> getSeats() {
-        return this.seats;
+        return Collections.unmodifiableList(this.seats);
+    }
+
+    public void addSeatToScreen(Seat seat) {
+        this.seats.add(seat);
     }
 
 }

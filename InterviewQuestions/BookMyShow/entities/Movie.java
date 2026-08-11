@@ -1,14 +1,15 @@
 package InterviewQuestions.BookMyShow.entities;
 
 import java.util.UUID;
+import java.time.Duration;
 
 public class Movie {
     private final String movieId;
     private final String movieName;
     private final String movieDescription;
-    private final String movieDuration;
+    private final Duration movieDuration;
 
-    public Movie(String movieName, String movieDescription, String movieDuration) {
+    public Movie(String movieName, String movieDescription, Duration movieDuration) {
         this.movieDescription = movieDescription;
         this.movieName = movieName;
         this.movieDuration = movieDuration;
@@ -27,7 +28,7 @@ public class Movie {
         return this.movieDescription;
     }
 
-    public String getMovieDuration() {
+    public Duration getMovieDuration() {
         return this.movieDuration;
     }
 }

@@ -1,21 +1,24 @@
 package InterviewQuestions.BookMyShow.entities;
 
-import java.util.List;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 public class Show {
     private final String showId;
     private final Movie movie;
-    private final String showStartTime;
-    private final String showDuration;
+    private final LocalDateTime showStartTime;
+    private final Duration showDuration;
+    private final LocalDateTime showEndTime;
     private final Screen screen;
     private final Theatre theatre;
 
-    public Show(Movie movie, String showStartTime, String showDuration, Screen screen, Theatre theatre) {
+    public Show(Movie movie, LocalDateTime showStartTime, Duration showDurationInMinute, Screen screen, Theatre theatre) {
         this.movie = movie;
         this.screen = screen;
         this.showStartTime = showStartTime;
-        this.showDuration = showDuration;
+        this.showDuration = showDurationInMinute;
+        this.showEndTime = showStartTime.plusMinutes(showDurationInMinute.toMinutes());
         this.showId = UUID.randomUUID().toString();
         this.theatre = theatre;
     }
@@ -32,11 +35,11 @@ public class Show {
         return this.movie;
     }
 
-    public String getShowStartTime() {
+    public LocalDateTime getShowStartTime() {
         return this.showStartTime;
     }
 
-    public String getShowDuration() {
+    public Duration getShowDuration() {
         return this.showDuration;
     }
 

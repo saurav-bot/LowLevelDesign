@@ -1,14 +1,15 @@
 package InterviewQuestions.BookMyShow.entities;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
 
 public class Theatre {
     private final String theatreId;
-    private Address address;
-    private String name;
-    private List<Screen> screens;
+    private final Address address;
+    private final String name;
+    private final List<Screen> screens;
 
     public Theatre(Address address, String name, List<Screen> screens) {
         this.address = address;
@@ -30,7 +31,11 @@ public class Theatre {
     }
 
     public List<Screen> getScreens() {
-        return screens;
+        return Collections.unmodifiableList(screens);
+    }
+
+    public void addScreenToTheatre(Screen screen) {
+        this.screens.add(screen);
     }
 }
 
