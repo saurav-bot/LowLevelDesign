@@ -17,9 +17,14 @@ public class SplitWiseDemo {
         User user1 = new User("prince");
         User user2 = new User("gaurav");
 
+
         List<User> users = new ArrayList<>(List.of(user, user1, user2));
 
         BalanceSheetService balanceSheetService = new BalanceSheetService();
+
+        balanceSheetService.addUser(user);
+        balanceSheetService.addUser(user1);
+        balanceSheetService.addUser(user2);
 
         ExpanseService expanseService = new ExpanseService(new SplitStrategyFactory(), balanceSheetService);
 
@@ -29,10 +34,19 @@ public class SplitWiseDemo {
         expanseService.createExpense(exact);
         checkBalanceOfAllUser(users, balanceSheetService);
 
-        Transaction transaction = new Transaction(BigDecimal.valueOf(20), user1, user);
-        balanceSheetService.recordTransactionAgainstExpense(transaction);
+//        Transaction transaction = new Transaction(BigDecimal.valueOf(20), user1, user);
+//        balanceSheetService.recordTransactionAgainstExpense(transaction);
 
-        System.out.println("\nAfter recording transaction\n");
+
+        List<Split> splitList2 = List.of(new Split(BigDecimal.valueOf(10), user1, user1, 0), new Split(BigDecimal.valueOf(20), user1, user2, 0));
+        Expense exact2 = new Expense(splitList2, user1, BigDecimal.valueOf(30), SplitType.EXACT);
+
+        expanseService.createExpense(exact2);
+        checkBalanceOfAllUser(users, balanceSheetService);
+
+        balanceSheetService.simplifyDebt();
+
+        System.out.println("\nAfter simplifying transaction\n");
         checkBalanceOfAllUser(users, balanceSheetService);
 
 
@@ -45,12 +59,12 @@ public class SplitWiseDemo {
             System.out.println("\n BalanceSheet of " + user.getUserName() + " to pay " + balanceSheet.getTotalOwed() + " to receive " + balanceSheet.getTotalReceivable());
             System.out.println("Pat To Users");
             for (Map.Entry<String, BigDecimal> balance : balanceSheet.getToPayUserWise().entrySet()) {
-                System.out.println(balance.getKey() + " -> " + balance.getValue());
+                System.out.println(balanceSheetService.getUser(balance.getKey()).getUserName() + " -> " + balance.getValue());
             }
 
             System.out.println("Receive From Users");
             for (Map.Entry<String, BigDecimal> balance : balanceSheet.getToReceiveUserWise().entrySet()) {
-                System.out.println(balance.getKey() + " -> " + balance.getValue() + "\n");
+                System.out.println(balanceSheetService.getUser(balance.getKey()).getUserName() + " -> " + balance.getValue() + "\n");
             }
         }
     }
