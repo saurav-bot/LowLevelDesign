@@ -50,10 +50,6 @@ public class BookMyShow {
         Booking book1 = bookingService.book(show, bookedSeat, saurav);
         System.out.println("Booking: " + book1.getBookingStatus());
 
-//        ShowSeat t = bookedSeat.get(0);
-//        bookedSeat = new ArrayList<>(bookingService.getAvailableSeatForShow(show.getShowId()));
-//        bookedSeat.add(t);
-
         Booking book2 = bookingService.book(show, bookedSeat, saurav);
         System.out.println("Booking: " + book2.getBookingStatus());
 
