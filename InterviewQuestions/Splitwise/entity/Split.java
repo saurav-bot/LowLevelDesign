@@ -3,14 +3,12 @@ package InterviewQuestions.Splitwise.entity;
 import java.math.BigDecimal;
 
 public class Split {
-    private final BigDecimal splitAmount;
-    private final User from;
+    private BigDecimal splitAmount;
     private final User to;
     private final int percentage;
 
-    public Split(BigDecimal splitAmount, User from, User to, int percentage) {
+    public Split(BigDecimal splitAmount, User to, int percentage) {
         this.splitAmount = splitAmount;
-        this.from = from;
         this.percentage = percentage;
         this.to = to;
     }
@@ -19,8 +17,8 @@ public class Split {
         return this.splitAmount;
     }
 
-    public User getFrom() {
-        return from;
+    public void setSplitAmount(BigDecimal splitAmount) {
+        this.splitAmount = splitAmount;
     }
 
     public User getTo() {

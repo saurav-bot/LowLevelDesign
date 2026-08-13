@@ -25,14 +25,13 @@ public class ExpanseService {
         validateExpense(expense);
 
         SplitStrategy splitStrategy = splitStrategyFactory.getSplitStrategy(expense.getSplitType());
-        splitStrategy.verifySplit(expense);
+        splitStrategy.split(expense);
 
         expenseMap.put(expense.getExpenseId(), expense);
 
         for (Split split : expense.getSplits()) {
-            if (!(split.getFrom() == expense.getPaidBy() && split.getTo() == expense.getPaidBy())) {
+            if (!(split.getTo().equals(expense.getPaidBy()))) {
                 balanceSheetService.updateBalancesOfUser(expense.getPaidBy(), split.getTo(), split.getSplitAmount());
-
             }
         }
 

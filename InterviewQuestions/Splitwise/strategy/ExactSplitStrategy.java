@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 
 public class ExactSplitStrategy implements SplitStrategy{
 
-    public void verifySplit(Expense expense) {
+    public void split(Expense expense) {
         BigDecimal totalAmount = BigDecimal.ZERO;
 
         for (Split split : expense.getSplits()) {

@@ -6,25 +6,27 @@ import InterviewQuestions.Splitwise.entity.Split;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.List;
 
 public class EqualSplitStrategy implements SplitStrategy {
 
-    public void verifySplit(Expense expense){
+    public void split(Expense expense){
         int n = expense.getSplits().size();
-        BigDecimal share = expense.getAmount().divide(BigDecimal.valueOf(n), RoundingMode.valueOf(2));
-
-        BigDecimal errorMargin = BigDecimal.valueOf(0.11);
+        BigDecimal share = expense.getAmount().divide(BigDecimal.valueOf(n), 2, RoundingMode.HALF_UP);
 
         BigDecimal totalAmountOfSplit = BigDecimal.ZERO;
         for (Split split : expense.getSplits()) {
-            if (share.subtract(split.getSplitAmount()).compareTo(errorMargin) > 0) {
-                throw new RuntimeException("Equal split is violated");
-            }
-            totalAmountOfSplit = totalAmountOfSplit.add(split.getSplitAmount());
+            split.setSplitAmount(share);
+            totalAmountOfSplit = totalAmountOfSplit.add(share);
+            System.out.println(split.getTo().getUserName() + " split amount: " + split.getSplitAmount() + " percentage: "  + split.getPercentage() + " total amount " + expense.getAmount());
+
         }
 
-        if (totalAmountOfSplit.subtract(expense.getAmount()).compareTo(errorMargin) > 0 ) {
-            throw new RuntimeException("Equal split is violated");
+        BigDecimal difference = expense.getAmount().subtract(totalAmountOfSplit);
+        System.out.println("difference: " + difference);
+        if (difference.compareTo(BigDecimal.ZERO) != 0) {
+            Split firstSplit = expense.getSplits().getLast();
+            firstSplit.setSplitAmount(firstSplit.getSplitAmount().add(difference));
         }
     }
 }
